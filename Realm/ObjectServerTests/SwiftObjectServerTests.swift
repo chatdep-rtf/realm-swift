@@ -2664,7 +2664,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
         let document: Document = ["name": "fido", "breed": "cane corso"]
         let document2: Document = ["name": "rex", "breed": "tibetan mastiff"]
         let document3: Document = ["name": "rex", "breed": "tibetan mastiff", "coat": ["fawn", "brown", "white"]]
-        let findOptions = FindOptions(1, nil, nil)
+        let findOptions = FindOptions(1, nil)
 
         collection.find(filter: [:], options: findOptions)
             .await(self) { findResult in
@@ -2783,7 +2783,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
 
         collection.findOneAndUpdate(filter: document, update: document2).await(self)
 
-        let options1 = FindOneAndModifyOptions(["name": 1], ["_id": 1], true, true)
+        let options1 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)], true, true)
         collection.findOneAndUpdate(filter: document2, update: document3, options: options1).await(self) { updateResult in
             guard let updateResult = updateResult else {
                 XCTFail("Should find")
@@ -2792,7 +2792,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
             XCTAssertEqual(updateResult["name"]??.stringValue, "john")
         }
 
-        let options2 = FindOneAndModifyOptions(["name": 1], ["_id": 1], true, true)
+        let options2 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)], true, true)
         collection.findOneAndUpdate(filter: document, update: document2, options: options2).await(self) { updateResult in
             guard let updateResult = updateResult else {
                 XCTFail("Should find")
@@ -2812,7 +2812,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
             XCTAssertNil(updateResult)
         }
 
-        let options1 = FindOneAndModifyOptions(["name": 1], ["_id": 1], true, true)
+        let options1 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)], true, true)
         collection.findOneAndReplace(filter: document2, replacement: document3, options: options1).await(self) { updateResult in
             guard let updateResult = updateResult else {
                 XCTFail("Should find")
@@ -2821,7 +2821,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
             XCTAssertEqual(updateResult["name"]??.stringValue, "john")
         }
 
-        let options2 = FindOneAndModifyOptions(["name": 1], ["_id": 1], true, false)
+        let options2 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)], true, false)
         collection.findOneAndReplace(filter: document, replacement: document2, options: options2).await(self) { updateResult in
             XCTAssertNil(updateResult)
         }
@@ -2840,7 +2840,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
         }
 
         collection.insertMany([document]).await(self)
-        let options1 = FindOneAndModifyOptions(projection: ["name": 1], sort: ["_id": 1], upsert: false, shouldReturnNewDocument: false)
+        let options1 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)], false, false)
         collection.findOneAndDelete(filter: document, options: options1).await(self) { deleteResult in
             XCTAssertNotNil(deleteResult)
         }
@@ -2849,7 +2849,7 @@ class CombineObjectServerTests: SwiftSyncTestCase {
         }
 
         collection.insertMany([document]).await(self)
-        let options2 = FindOneAndModifyOptions(["name": 1], ["_id": 1])
+        let options2 = FindOneAndModifyOptions(["name": 1], [SortDescriptor(keyPath: "_id", ascending: true)])
         collection.findOneAndDelete(filter: document, options: options2).await(self) { deleteResult in
             XCTAssertNotNil(deleteResult)
         }
