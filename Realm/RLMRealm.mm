@@ -18,7 +18,9 @@
 
 #import "RLMRealm_Private.hpp"
 
+#if DEBUG
 #import "RLMAnalytics.hpp"
+#endif
 #import "RLMAsyncTask_Private.h"
 #import "RLMArray_Private.hpp"
 #import "RLMDictionary_Private.hpp"
@@ -80,6 +82,7 @@ void RLMDisableSyncToDisk() {
 }
 
 static std::atomic<bool> s_set_skip_backup_attribute{true};
+static bool initialized;
 void RLMSetSkipBackupAttribute(bool value) {
     s_set_skip_backup_attribute = value;
 }
@@ -241,15 +244,15 @@ public:
 };
 }
 
-+ (void)initialize {
-    static bool initialized;
++ (void)runFirstCheckForConfiguration:(RLMRealmConfiguration *)configuration schema:(RLMSchema *)schema {
     if (initialized) {
         return;
     }
     initialized = true;
 
+    // Run Analytics on the very first any Realm open.
+    RLMSendAnalytics(configuration, schema);
     RLMCheckForUpdates();
-    RLMSendAnalytics();
     realm::util::Logger::set_default_level_threshold(realm::util::Logger::Level::off);
     realm::util::Logger::set_default_logger(std::make_shared<NullLogger>());
 }
@@ -476,6 +479,9 @@ public:
         }];
     }
 #endif
+
+    // Run Analytics and Update checker, this will be run only the first any realm open
+    [self runFirstCheckForConfiguration:configuration schema:realm.schema];
 
     return realm;
 }
