@@ -88,11 +88,20 @@ class SwiftEventTests: SwiftSyncTestCase {
         super.tearDown()
     }
 
-    func config(partition: String = #function) throws -> Realm.Configuration {
+    func config(partition: String = UUID().uuidString) -> Realm.Configuration {
         var config = user.configuration(partitionValue: partition)
         config.eventConfiguration = EventConfiguration()
         config.objectTypes = [SwiftPerson.self, SwiftCustomEventRepresentation.self]
         return config
+    }
+
+    func openRealm(_ configuration: Realm.Configuration? = nil) throws -> Realm {
+        let realm = try openRealm(configuration: configuration ?? self.config())
+        // For some reason the server deletes and recreates our objects, which
+        // breaks our accessor objects. Work around this by just not syncing the
+        // main Realm after opening it.
+        realm.syncSession?.pause()
+        return realm
     }
 
     func scope<T>(_ events: Events, _ name: String, body: () throws -> T) rethrows -> T {
@@ -168,7 +177,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testBasicEvents() throws {
-        let realm = try openRealm(configuration: self.config())
+        let realm = try openRealm()
         let events = realm.events!
 
         let personJson: NSDictionary = try scope(events, "create object") {
@@ -211,7 +220,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testBasicWithAsyncOpen() throws {
-        let realm = try Realm.asyncOpen(configuration: self.config()).await(self)
+        let realm = Realm.asyncOpen(configuration: self.config()).await(self)
         let events = try XCTUnwrap(realm.events)
 
         let personJson: NSDictionary = try scope(events, "create object") {
@@ -228,7 +237,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testCustomEventRepresentation() throws {
-        let realm = try openRealm(configuration: self.config())
+        let realm = try openRealm()
         let events = realm.events!
         let scope1 = events.beginScope(activity: "bad json")
         try realm.write {
@@ -259,9 +268,9 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testReadEvents() throws {
-        var config = try self.config()
+        var config = self.config()
         config.objectTypes = [SwiftPerson.self, LinkToSwiftPerson.self]
-        let realm = try openRealm(configuration: config)
+        let realm = try openRealm(config)
         let events = realm.events!
 
         let a = SwiftPerson(firstName: "A", lastName: "B")
@@ -331,9 +340,9 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testLinkTracking() throws {
-        var config = try self.config()
+        var config = self.config()
         config.objectTypes = [SwiftPerson.self, LinkToSwiftPerson.self]
-        let realm = try openRealm(configuration: config)
+        let realm = try openRealm(config)
         let events = realm.events!
 
         let a = SwiftPerson(firstName: "A", lastName: "B")
@@ -466,7 +475,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     func testCustomLogger() throws {
         let ex = expectation(description: "saw message with scope name")
         ex.assertForOverFulfill = false
-        var config = try self.config()
+        var config = self.config()
         config.eventConfiguration!.logger = { _, message in
             // Mostly just verify that the user-provided logger is wired up
             // correctly and not that the log messages are sensible
@@ -500,7 +509,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     }
 
     func testScopeLifetimes() throws {
-        let realm = try openRealm(configuration: self.config())
+        let realm = try openRealm()
         let events = realm.events!
 
         try autoreleasepool { () -> Future<Void, Error> in
@@ -524,7 +533,7 @@ class SwiftEventTests: SwiftSyncTestCase {
     func testScopeCanOutliveSourceRealm() throws {
         var scope: Events.Scope?
         try autoreleasepool {
-            let realm = try openRealm(configuration: self.config())
+            let realm = try openRealm()
             let events = realm.events!
             scope = events.beginScope(activity: "scope")
             try realm.write {
