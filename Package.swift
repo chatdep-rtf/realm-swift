@@ -166,6 +166,7 @@ let package = Package(
                 "Realm/RLMEmbeddedObject.mm",
                 "Realm/RLMError.mm",
                 "Realm/RLMEvent.mm",
+                "Realm/RLMLogger.mm",
                 "Realm/RLMManagedArray.mm",
                 "Realm/RLMManagedDictionary.mm",
                 "Realm/RLMManagedSet.mm",
