@@ -613,9 +613,9 @@ keyPaths:(std::optional<std::vector<std::vector<std::pair<realm::TableKey, realm
 - (void)subscribeWithName:(NSString *_Nullable)name
           waitForSyncMode:(RLMWaitForSyncMode)waitForSyncMode
                completion:(RLMResultsCompletionBlock)completionHandler {
-    RLMSyncSubscriptionSet *subs = self.realm.subscriptions;
-    [subs update:^{
-        [subs addSubscriptionWithClassName:self.objectClassName
+    RLMSyncSubscriptionSet *subscriptions = self.realm.subscriptions;
+    [subscriptions update:^{
+        [subscriptions addSubscriptionWithClassName:self.objectClassName
                           subscriptionName:name
                                      query:_results.get_query()
                             updateExisting:true]; // TODO: change this
@@ -634,7 +634,13 @@ keyPaths:(std::optional<std::vector<std::vector<std::pair<realm::TableKey, realm
                completion:(RLMResultsCompletionBlock)completionHandler {}
 
 - (BOOL)unsubscribe {
-    return false;
+    RLMSyncSubscriptionSet *subscriptions = self.realm.subscriptions;
+    BOOL __block removed = false;
+    [subscriptions update:^{
+        removed = [subscriptions removeSubscriptionWithClassName:self.objectClassName
+                                                 query:_results.get_query()];
+    }];
+    return removed;
 }
 
 - (BOOL)isAttached {
