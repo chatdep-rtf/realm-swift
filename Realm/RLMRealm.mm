@@ -242,7 +242,13 @@ public:
 };
 }
 
++ (void)initialize {
+    realm::util::Logger::set_default_level_threshold(realm::util::Logger::Level::off);
+    realm::util::Logger::set_default_logger(std::make_shared<NullLogger>());
+}
+
 + (void)runFirstCheckForConfiguration:(RLMRealmConfiguration *)configuration schema:(RLMSchema *)schema {
+    static bool initialized;
     if (initialized) {
         return;
     }
@@ -251,8 +257,7 @@ public:
     // Run Analytics on the very first any Realm open.
     RLMSendAnalytics(configuration, schema);
     RLMCheckForUpdates();
-    realm::util::Logger::set_default_level_threshold(realm::util::Logger::Level::off);
-    realm::util::Logger::set_default_logger(std::make_shared<NullLogger>());
+
 }
 
 - (instancetype)initPrivate {
