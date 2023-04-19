@@ -245,7 +245,7 @@ bool copySeedFile(RLMRealmConfiguration *configuration, NSError **error) {
 
     // In cases where we are not using a synced Realm, we initialise the default logger
     // before opening any realm.
-    RLMInitDefaultLogger();
+    [RLMLogger class];
 }
 
 - (instancetype)initPrivate {

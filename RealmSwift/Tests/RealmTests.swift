@@ -1538,11 +1538,11 @@ class LoggerTests: TestCase {
         Logger.shared.level = .all
         try autoreleasepool { _ = try Realm() } // We should be getting logs after changing the log level
         XCTAssertEqual(Logger.shared.level, .all)
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
-        XCTAssertNotNil(logs.range(of: "Trace DB:", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
+        XCTAssertTrue(logs.contains("Trace DB:"))
     }
 
-    func testDedaLogger() throws {
+    func testDefaultLogger() throws {
         var logs: String = ""
         let logger = Logger(level: .off) { level, message in
             logs += "\(Date.now) \(level.logLevel) \(message)"
@@ -1558,7 +1558,7 @@ class LoggerTests: TestCase {
         try autoreleasepool { _ = try Realm() }
 
         XCTAssertTrue(!logs.isEmpty)
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
 
         // Debug
         logs = ""
@@ -1566,7 +1566,7 @@ class LoggerTests: TestCase {
         try autoreleasepool { _ = try Realm() }
 
         XCTAssertTrue(!logs.isEmpty)
-        XCTAssertNotNil(logs.range(of: "Trace DB:", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Trace DB:"))
 
         // Info
         logs = ""
@@ -1574,17 +1574,18 @@ class LoggerTests: TestCase {
         try autoreleasepool { _ = try Realm() }
 
         XCTAssertTrue(!logs.isEmpty)
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
-        XCTAssertNil(logs.range(of: "Trace DB:", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
+        XCTAssertFalse(logs.contains("Trace DB:"))
 
         logs = ""
-        Logger.shared = Logger(level: .info) { level, message in
+        Logger.shared = Logger(level: .trace) { level, message in
             logs += "\(Date.now) \(level.logLevel) \(message)"
         }
-        XCTAssertEqual(Logger.shared.level, .info)
+        XCTAssertEqual(Logger.shared.level, .trace)
         try autoreleasepool { _ = try Realm() }
         XCTAssertTrue(!logs.isEmpty)
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
+        XCTAssertTrue(logs.contains("Trace DB:"))
     }
 
     func testCustomLoggerLog() throws {
@@ -1598,16 +1599,16 @@ class LoggerTests: TestCase {
         try autoreleasepool { _ = try Realm() }
 
         XCTAssertTrue(!logs.isEmpty)
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
+        XCTAssertNotNil(logs.contains("Info DB:"))
 
         logger.log(level: .info, message: "Info DB: 'Database is broken'")
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
-        XCTAssertNotNil(logs.range(of: "Info DB: 'Database is broken'", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
+        XCTAssertTrue(logs.contains("Info DB: 'Database is broken'"))
 
         logger.log(level: .debug, message: "Debug DB: 'Database is good'")
         // Should not be added to log, because log level is greater than the one set.
-        XCTAssertNotNil(logs.range(of: "Info DB:", options: .regularExpression))
-        XCTAssertNotNil(logs.range(of: "Info DB: 'Database is broken'", options: .regularExpression))
-        XCTAssertNil(logs.range(of: "Debug DB: 'Database is good'", options: .regularExpression))
+        XCTAssertTrue(logs.contains("Info DB:"))
+        XCTAssertTrue(logs.contains("Info DB: 'Database is broken'"))
+        XCTAssertFalse(logs.contains("Debug DB: 'Database is good'"))
     }
 }
