@@ -926,6 +926,13 @@ private func buildPredicate(_ root: QueryNode, subqueryCount: Int = 0) -> (Strin
         formatStr.append("}")
     }
 
+    func buildBool(_ node: QueryNode, isNot: Bool = false) {
+        if case let .keyPath(kp, _) = node {
+            formatStr.append(kp.joined(separator: "."))
+            formatStr.append(" == \(isNot ? "false" : "true")")
+        }
+    }
+
     func strOptions(_ options: StringOptions) -> String {
         if options == [] {
             return ""
@@ -933,17 +940,26 @@ private func buildPredicate(_ root: QueryNode, subqueryCount: Int = 0) -> (Strin
         return "[\(options.contains(.caseInsensitive) ? "c" : "")\(options.contains(.diacriticInsensitive) ? "d" : "")]"
     }
 
-    func build(_ node: QueryNode, prefix: String? = nil) {
+    func build(_ node: QueryNode, prefix: String? = nil, isRoot: Bool = false) {
         switch node {
         case .constant(let value):
             formatStr.append("%@")
             arguments.add(value ?? NSNull())
         case .keyPath(let kp, let options):
+            if isRoot {
+                buildBool(node)
+                return
+            }
             if options.contains(.requiresAny) {
                 formatStr.append("ANY ")
             }
             formatStr.append(kp.joined(separator: "."))
         case .not(let child):
+            if case .keyPath = child,
+               isRoot   {
+                buildBool(child, isNot: true)
+                return
+            }
             build(child, prefix: "NOT ")
         case .comparison(operator: let op, let lhs, let rhs, let options):
             switch op {
@@ -969,7 +985,7 @@ private func buildPredicate(_ root: QueryNode, subqueryCount: Int = 0) -> (Strin
             arguments.add(key)
         }
     }
-    build(root)
+    build(root, isRoot: true)
     return (formatStr as String, (arguments as! [Any]))
 }
 
