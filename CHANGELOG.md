@@ -10,7 +10,7 @@ x.y.z Release notes (yyyy-MM-dd)
 <!-- ### Breaking Changes - ONLY INCLUDE FOR NEW MAJOR version -->
 
 ### Compatibility
-* Realm Studio: 13.0.2 or later.
+* Realm Studio: 14.0.1 or later.
 * APIs are backwards compatible with all previous releases in the 10.x.y series.
 * Carthage release for Swift is built with Xcode 14.3.
 * CocoaPods: 1.10 or later.
@@ -18,6 +18,46 @@ x.y.z Release notes (yyyy-MM-dd)
 
 ### Internal
 * Upgraded realm-core from ? to ?
+
+10.38.2 Release notes (2023-04-25)
+=============================================================
+
+### Enhancements
+
+* Improve performance of equality queries on a non-indexed AnyRealmValue
+  property by about 30%. ([Core #6506](https://github.com/realm/realm-core/issues/6506))
+
+### Fixed
+
+* SSL handshake errors were treated as fatal errors rather than errors which
+  should be retried. ([Core #6434](https://github.com/realm/realm-core/issues/6434), since v10.35.0)
+
+### Compatibility
+
+* Realm Studio: 14.0.1 or later.
+* APIs are backwards compatible with all previous releases in the 10.x.y series.
+* Carthage release for Swift is built with Xcode 14.3.
+* CocoaPods: 1.10 or later.
+* Xcode: 13.4-14.3.
+
+### Internal
+
+* Upgraded realm-core from 13.9.0 to 13.9.3.
+
+10.38.1 Release notes (2023-04-25)
+=============================================================
+
+### Fixed
+
+* The error handler set on EventsConfiguration was not actually used (since v10.26.0).
+
+### Compatibility
+
+* Realm Studio: 13.0.2 or later.
+* APIs are backwards compatible with all previous releases in the 10.x.y series.
+* Carthage release for Swift is built with Xcode 14.3.
+* CocoaPods: 1.10 or later.
+* Xcode: 13.4-14.3.
 
 10.38.0 Release notes (2023-03-31)
 =============================================================
