@@ -12,17 +12,16 @@ x.y.z Release notes (yyyy-MM-dd)
  }
  ```
 
- Set this custom logger as you default logger using `Logger.shared`.
+  Set this custom logger as you default logger using `Logger.shared`.
  ```swift
-    Logger.shared = inMemoryLogger
+    Logger.shared = logger
  ```
-  This logger can be set as default using the new API `Logger.setDefaultLogger(inMemoryLogger)`.
 * It is now possible to change the default log threshold level at any point of the application's lifetime.
   ```swift
   Logger.shared.logLevel = .debug
   ```
   This will override the log level set anytime before by a user created logger.
-* We have set `.warn` as the default log threshold level for Realm. You will now see some 
+* We have set `.info` as the default log threshold level for Realm. You will now see some 
   log message in your console. To disable use `Logger.shared.level = .off`.
 
 ### Fixed
